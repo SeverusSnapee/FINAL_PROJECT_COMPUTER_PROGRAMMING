@@ -6,113 +6,106 @@ import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-# Use 'Agg' backend for plotting in non-interactive environments
+# Use 'Agg' backend for non-interactive environments
 matplotlib.use('Agg')
 
-# Function to compute the environmental impact based on input data
-def compute_footprint(energy_usage, travel_distance, waste_produced):
-    return energy_usage * 0.233 + travel_distance * 0.12 + waste_produced * 0.5
+# Function to calculate carbon footprint based on input data
+def calculate_footprint(energy, distance, waste):
+    return energy * 0.233 + distance * 0.12 + waste * 0.5
 
-# Function to create individual PDF reports for each client
-def create_pdf_report(data, file_path):
+# Function to create a PDF report for each client
+def create_report(data, file_path):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    # Initialize PDF creation using ReportLab
     pdf = canvas.Canvas(file_path, pagesize=letter)
     width, height = letter
     
-    # Adding Title to the PDF
+    # Add title
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(200, height - 40, "Carbon Footprint Report")
     
     pdf.setFont("Helvetica", 12)
     y_position = height - 80
     
-    # Displaying Client Information
+    # Add client data
     pdf.drawString(50, y_position, f"Client: {data['Client']}")
     y_position -= 20
-    pdf.drawString(50, y_position, f"Energy Consumption: {data['energy_kwh']} kWh")
+    pdf.drawString(50, y_position, f"Energy: {data['energy_kwh']} kWh")
     y_position -= 20
-    pdf.drawString(50, y_position, f"Transport Distance: {data['transport_km']} km")
+    pdf.drawString(50, y_position, f"Transport: {data['transport_km']} km")
     y_position -= 20
-    pdf.drawString(50, y_position, f"Waste Generated: {data['waste_kg']} kg")
+    pdf.drawString(50, y_position, f"Waste: {data['waste_kg']} kg")
     y_position -= 20
-    pdf.drawString(50, y_position, f"Total Carbon Footprint: {data['total_footprint']} kg CO2")
+    pdf.drawString(50, y_position, f"Footprint: {data['total_footprint']} kg CO2")
     y_position -= 30
     
-    # Recommendations section
-    pdf.drawString(50, y_position, "Suggestions to Lower Carbon Footprint:")
+    # Suggestions for lowering footprint
+    pdf.drawString(50, y_position, "Suggestions:")
     y_position -= 20
-    pdf.drawString(50, y_position, "- Use energy-saving appliances.")
+    pdf.drawString(50, y_position, "- Use energy-efficient appliances.")
     y_position -= 15
-    pdf.drawString(50, y_position, "- Consider carpooling or public transport.")
+    pdf.drawString(50, y_position, "- Carpool or use public transport.")
     y_position -= 15
-    pdf.drawString(50, y_position, "- Minimize waste through recycling and reuse.")
+    pdf.drawString(50, y_position, "- Recycle and reduce waste.")
     
-    # Save the PDF file
+    # Save PDF
     pdf.save()
     print(f"PDF Report Created: {file_path}")
 
-# Function to generate a graph summarizing trends across clients
-def generate_trend_graph(data_list):
-    # Extracting data for graph plotting
+# Function to generate a trend graph for multiple clients
+def generate_graph(data_list):
     clients = [data['Client'] for data in data_list]
-    energy_usage = [data['energy_kwh'] for data in data_list]
-    travel_distance = [data['transport_km'] for data in data_list]
-    waste_produced = [data['waste_kg'] for data in data_list]
-    carbon_footprint = [data['total_footprint'] for data in data_list]
+    energy = [data['energy_kwh'] for data in data_list]
+    transport = [data['transport_km'] for data in data_list]
+    waste = [data['waste_kg'] for data in data_list]
+    footprint = [data['total_footprint'] for data in data_list]
     
-    # Creating a DataFrame for organized data handling
+    # Create a DataFrame
     df = pd.DataFrame({
         'Client': clients,
-        'Energy Usage (kWh)': energy_usage,
-        'Transport (km)': travel_distance,
-        'Waste (kg)': waste_produced,
-        'Carbon Footprint (kg CO2)': carbon_footprint
+        'Energy (kWh)': energy,
+        'Transport (km)': transport,
+        'Waste (kg)': waste,
+        'Footprint (kg CO2)': footprint
     })
     
-    # Create a plot for trends in carbon footprints
+    # Plot data
     plt.figure(figsize=(10, 6))
-    
-    # Plotting the carbon footprint data
-    plt.bar(df['Client'], df['Carbon Footprint (kg CO2)'], color='skyblue', label='Carbon Footprint')
-    
-    # Adding other metrics for comparison
-    plt.plot(df['Client'], df['Energy Usage (kWh)'], color='green', marker='o', label='Energy Usage', linestyle='--')
-    plt.plot(df['Client'], df['Transport (km)'], color='orange', marker='o', label='Transport Distance', linestyle='--')
-    plt.plot(df['Client'], df['Waste (kg)'], color='red', marker='o', label='Waste Production', linestyle='--')
+    plt.bar(df['Client'], df['Footprint (kg CO2)'], color='skyblue', label='Carbon Footprint')
+    plt.plot(df['Client'], df['Energy (kWh)'], color='green', marker='o', label='Energy', linestyle='--')
+    plt.plot(df['Client'], df['Transport (km)'], color='orange', marker='o', label='Transport', linestyle='--')
+    plt.plot(df['Client'], df['Waste (kg)'], color='red', marker='o', label='Waste', linestyle='--')
 
-    # Adding labels and title to the plot
+    # Labels and title
     plt.xlabel('Clients')
     plt.ylabel('Metrics')
-    plt.title('Trends of Carbon Footprint and Related Metrics')
+    plt.title('Carbon Footprint Trends')
     plt.xticks(rotation=45, ha="right")
-    plt.tight_layout()  # Ensures proper layout without clipping labels
+    plt.tight_layout()
     plt.legend()
     
-    # Save the plot as an image file
-    plt.savefig('client_carbon_trends.png', dpi=300)
+    # Save graph
+    plt.savefig('carbon_trends.png', dpi=300)
     plt.close()
-    print("Trend Graph Saved as 'client_carbon_trends.png'")
+    print("Graph Saved as 'carbon_trends.png'")
 
-# Function to handle input and generate reports for multiple clients
+# Main function to handle input and generate reports for multiple clients
 def main():
     client_data = []
 
     while True:
-        print("Enter the client's data:")
+        print("Enter client data:")
 
         try:
-            energy_kwh = float(input("Energy consumption (kWh): "))
-            transport_km = float(input("Transport distance (km): "))
-            waste_kg = float(input("Waste generated (kg): "))
+            energy_kwh = float(input("Energy (kWh): "))
+            transport_km = float(input("Transport (km): "))
+            waste_kg = float(input("Waste (kg): "))
         except ValueError:
-            print("Invalid input. Please enter numerical values.")
+            print("Invalid input. Please enter numbers.")
             continue
 
-        total_footprint = compute_footprint(energy_kwh, transport_km, waste_kg)
+        total_footprint = calculate_footprint(energy_kwh, transport_km, waste_kg)
 
-        # Collecting client-specific data
         client_name = input("Client Name: ")
         client_details = {
             'Client': client_name,
@@ -123,19 +116,19 @@ def main():
         }
         client_data.append(client_details)
 
-        # Generate individual reports
-        report_filename = f"Reports/{client_name}_carbon_report.pdf"
-        create_pdf_report(client_details, report_filename)
+        # Create the report
+        report_filename = f"Reports/{client_name}_report.pdf"
+        create_report(client_details, report_filename)
         print(f"Report created for {client_name}: {report_filename}")
 
-        # Check if more client data needs to be entered
-        continue_input = input("Do you want to add data for another client? (yes/no): ").strip().lower()
+        # Check if more data should be entered
+        continue_input = input("Add data for another client? (yes/no): ").strip().lower()
         if continue_input != 'yes':
             break
     
-    # After collecting all data, generate the trend graph
-    generate_trend_graph(client_data)
-    print("Generated the trend graph successfully.")
+    # Generate the summary graph
+    generate_graph(client_data)
+    print("Graph generated successfully.")
 
 if __name__ == "__main__":
     main()
