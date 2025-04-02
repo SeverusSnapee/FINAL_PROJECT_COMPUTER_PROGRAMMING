@@ -60,3 +60,4 @@ A sample graph will display trends of carbon footprint, energy usage, transport,
 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+When you will run the code you will generate individual pdf for each client in the reports folder and a collective png comparing all clients in the main folder.
